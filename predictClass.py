@@ -61,30 +61,25 @@ def scaleData(dataFrame, headers):
 
 ### Plots to Visualise Data ###
 
-#class_c1
-#plt.plot(scaledProbe['Cryptonine-1'],scaledProbe['Class'], 'bo')
-#plt.ylabel('Class')
-#class_c2
-#plt.plot(scaledProbe['Cryptonine-2'], scaledProbe['Class'], 'ro')
-#plt.ylabel('Class')
-#class_m1
-#plt.plot(scaledProbe['Mermaidine-1'], scaledProbe['Class'], 'co')
-#plt.ylabel('Class')
-#class_m3
-#plt.plot(scaledProbe['Mermaidine-3'], scaledProbe['Class'], 'yo')
-#plt.ylabel('Class')
-#class_n1
-#plt.plot(scaledProbe['Neraidine-1'], scaledProbe['Class'], 'ko')
-#plt.ylabel('Class')
-#class_n2
-#plt.plot(scaledProbe['Neraidine-2'], scaledProbe['Class'], 'bv')
-#plt.ylabel('Class')
-#class_p1
-#plt.plot(scaledProbe['Posidine-1'], scaledProbe['Class'], 'cv')
-#plt.ylabel('Class')
-#class_TNA
-#plt.plot(scaledProbe['TNA'], scaledProbe['Class'], 'k^')
-#plt.ylabel('Class')
+#transform scaled data csv to matrix
+df = scaleTest.as_matrix()
+#if the (standardised) class value is less than 0, colour datapoint red, otherwise blue
+#TNA against Cryptonine-2
+for i in range(0,len(scaleTest)):
+    if (df[i][13] < 0):
+        #red - 0
+        plt.plot(df[i][0], df[i][1], 'r+')
+    else:
+        #blue - 1
+        plt.plot(df[i][0], df[i][1], 'b+')
+#Only TNA values
+for i in range(0,len(scaleTest)):
+    if (df[i][13] < 0):
+        #red - class 0
+        plt.plot(df[i][0], df[i][2], 'r.')
+    else:
+        #blue - class 1
+        plt.plot(df[i][0], df[i][2], 'b.')
 
 #entropy function
 #From class_x plots, we can calculate entropy and information gain
