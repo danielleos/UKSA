@@ -64,47 +64,106 @@ def scaleData(dataFrame, headers):
 #transform scaled data csv to matrix
 df = scaleTest.as_matrix()
 #if the (standardised) class value is less than 0, colour datapoint red, otherwise blue
-#TNA against Cryptonine-2
-for i in range(0,len(scaleTest)):
-    if (df[i][13] < 0):
-        #red - 0
-        plt.plot(df[i][0], df[i][1], 'r+')
-    else:
-        #blue - 1
-        plt.plot(df[i][0], df[i][1], 'b+')
-#Only TNA values
+#TNA against Cryptonine-3
+#plt.plot(scaleTest['TNA'],scaleTest['Cryptonine-3'])
+df = scaleTest.as_matrix()
 for i in range(0,len(scaleTest)):
     if (df[i][13] < 0):
         #red - class 0
-        plt.plot(df[i][0], df[i][2], 'r.')
+        plt.plot(df[i][0], df[i][3], 'r.')
     else:
         #blue - class 1
-        plt.plot(df[i][0], df[i][2], 'b.')
+        plt.plot(df[i][0], df[i][3], 'b.')
+
+#c3 only
+df = scaleTest.as_matrix()
+for i in range(0,len(scaleTest)):
+    if (df[i][13] < 0):
+        #red - 0
+        plt.plot(i, df[i][3], 'r.')
+    else:
+        #blue - 1
+        plt.plot(i, df[i][3], 'b.')
+	
+#TNA only
+for i in range(0,len(scaleTest)):
+    if (df[i][13] < 0):
+        #red - 0
+        plt.plot(i, df[i][0], 'r.')
+    else:
+        #blue - 1
+        plt.plot(i, df[i][0], 'b.')
 
 #entropy function
-#From class_x plots, we can calculate entropy and information gain
-#We will be using these results in the decision tree building process with appropriate thresholds
-def entropy(dataFrame, pos_val, neg_val,tLabel):
-    npos = (dataFrame[tLabel] == pos_val).sum()
-    nneg = (dataFrame[tLabel] == neg_val).sum()
-    n = npos + nneg
+# We will be using class colour-coded plot results from above 
+# in the decision tree building process with appropriate thresholds
+def entropy(dataFrame, threshold, attribute, tvalue, tlabel):
+    df = dataFrame.copy()
+    #find column numbers (for referencing matrix in loops - can't iterate over a dataFrame)
+    aColumn = df.columns.get_loc(attribute)
+    tColumn = df.columns.get_loc(tlabel)
+    dm = df.as_matrix()
     
-    if npos == 0 or nneg == 0:
-        entropy = 0
+    # 'counters'
+    np1 = 0
+    nn1 = 0
+    np2 = 0
+    nn2 = 0
+    
+    #iterate over each row
+    for i in range(0,len(df)):
+        #check if a datapoint is above threshold for specified attribute (in our case, above 0 for TNA)
+        if dm[i][aColumn] > threshold:
+            #check if that same point is of class 0
+            if dm[i][tColumn] <= tvalue:
+                np1 += 1
+            #or of class 1
+            elif dm[i][tColumn] > tvalue:
+                nn1 += 1
+        #otherwise if it's below the threshold
+        elif dm[i][aColumn] <= threshold:
+            if dm[i][tColumn] <= tvalue:
+                #add to a separate counter (since we've split our data into two halves)
+                np2 += 1
+            elif dm[i][tColumn] > tvalue:
+                nn2 += 1
+                
+    #sum up our instances in each half
+    n1 = np1 + nn1
+    n2 = np2 + nn2
+    
+    #first half
+    if np1 == 0 or nn1 == 0:
+        entropy1 = 0
     else:
-        entropy = -((npos/n)*math.log((npos/n),2) + (nneg/n)*math.log((nneg/n),2))
+        #definition of entropy
+        entropy1 = -((np1/n1)*math.log((np1/n1),2) + (nn1/n1)*math.log((nn1/n1),2))
+    
+    #second half
+    if np2 == 0 or nn2 == 0:
+        entropy2 = 0
+    else:
+        entropy2 = -((np2/n2)*math.log((np2/n2),2) + (nn2/n2)*math.log((nn2/n2),2))
 
-    return entropy
-	
+    return entropy1, entropy2
+
+#entropy(scaleTest, 0, 'TNA', 0, 'Class')
+#output: roughly (0.746, 0.882)
+
 #information gain function
-def infoGain(dataFrame, attr, pos_val, neg_val, tLabel):
-    sEntropy = entropy(dataFrame,pos_val, neg_val, tLabel)
+#still needs adapting...
+def infoGain(dataFrame, threshold, attribute, tvalue, tlabel):
+    df = dataFrame.copy()
+    dm = df.as_matrix()
+    sEntropy = entropy(dataFrame, threshold, attribute, tvalue, tlabel)
+    aColumn = df.columns.get_loc(attribute)
+    tColumn = df.columns.get_loc(tlabel)
     sSize = len(dataFrame)
     sumEnt = 0
 
-    for i in dataFrame[attr].unique():
-        siSize = (dataFrame[attr] == i).sum()
-        sumEnt += (siSize/sSize)*entropy(dataFrame.loc[dataFrame[attr]==i],pos_val,neg_val,tLabel)
+    for i in dataFrame[attribute].unique():
+        siSize = (dataFrame[attribute] == i).sum()
+        sumEnt += (siSize/sSize)*entropy(dataFrame,threshold, attribute, tvalue, tlabel)
     
     infogain = sEntropy - sumEnt
     return infogain
