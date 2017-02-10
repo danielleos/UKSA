@@ -150,6 +150,20 @@ def entropy(dataFrame, threshold, attribute, tvalue, tlabel):
 #entropy(scaleTest, 0, 'TNA', 0, 'Class')
 #output: roughly (0.746, 0.882)
 
+#computes entropy for binary/discrete classes (and for only two classes - this would need adapting for multiclass examples)
+def singleEntropy(dataFrame, aClass, bClass, tlabel):
+    df = dataFrame.copy()
+    na = (df[tlabel] <= aClass).sum()
+    nb = (df[tlabel] >= bClass).sum()
+    n = na + nb
+    
+    if na == 0 or nb == 0:
+        entropy = 0
+    else:
+        entropy = -((na/n)*math.log((na/n),2) + (nb/n)*math.log((nb/n),2))
+
+    return entropy
+
 #information gain function
 #still needs adapting...
 def infoGain(dataFrame, threshold, attribute, tvalue, tlabel):
